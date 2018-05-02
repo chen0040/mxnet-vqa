@@ -9,6 +9,7 @@ import numpy as np
 
 def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
                      batch_size=64, max_lines_retrieved=100000,
+                     ctx=mx.cpu(),
                      test_size=0.2):
     answers = get_answers_matrix(data_dir_path=data_dir_path,
                                  mode=answer_mode, split='val',
@@ -16,7 +17,7 @@ def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
     questions = get_questions_matrix(data_dir_path=data_dir_path,
                                      mode=question_mode, split='val',
                                      max_lines_retrieved=max_lines_retrieved)
-    image_feats = get_coco_2014_val_image_features(data_dir_path=data_dir_path,
+    image_feats = get_coco_2014_val_image_features(data_dir_path=data_dir_path, ctx=ctx,
                                                    coco_images_dir_path=os.path.join(data_dir_path, 'val2014'),
                                                    max_lines_retrieved=max_lines_retrieved)
     record_count = answers.shape[0]

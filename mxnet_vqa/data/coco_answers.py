@@ -34,7 +34,7 @@ def answers_to_onehot(data_dir_path, split='val'):
 
 def answers_to_int(data_dir_path, split='val'):
     top_answers = int_to_answers(data_dir_path, split)
-    return dict([(i, word) for i, word in enumerate(top_answers)])
+    return dict([(word, i) for i, word in enumerate(top_answers)])
 
 
 def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='one_hot'):
@@ -69,11 +69,16 @@ def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode=
         answer_matrix = np.zeros((len(answers)))
 
         answers_to_int_dict = answers_to_int(data_dir_path, split)
-
-        default_val = 1000
+        print(answers_to_int_dict)
 
         for i, answer in enumerate(answers):
-            answer_matrix[i] = answers_to_int_dict.get(answer[0].lower(), default_val)
+            word = answer[0].lower()
+            if word in answers_to_int_dict:
+                answer_matrix[i] = answers_to_int_dict[word]
+            else:
+                logging.warning('Word does exist in the answer look up: %s', word)
+                answer_matrix[i] = 1000
+
             if (i + 1) % 10000 == 0:
                 logging.debug('loaded %d answers', i + 1)
         return answer_matrix
