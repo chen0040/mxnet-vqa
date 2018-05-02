@@ -116,6 +116,12 @@ def get_coco_2014_val_images(data_dir_path, coco_images_dir_path, max_lines_retr
     return result
 
 
+def checkpoint_features(pickle_path, features):
+    with open(pickle_path, 'wb') as handle:
+        logging.debug('saving image features as %s', pickle_path)
+        pickle.dump(features, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx.cpu(), max_lines_retrieved=-1):
     pickle_name = 'coco_val2014_feats'
     if max_lines_retrieved == -1:
@@ -124,14 +130,14 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
         pickle_name = pickle_name + str(max_lines_retrieved) + '.pickle'
     pickle_path = os.path.join(data_dir_path, pickle_name)
 
+    features = dict()
     if os.path.exists(pickle_path):
         logging.info('loading val2014 image features from %s', pickle_path)
         start_time = time.time()
         with open(pickle_path, 'rb') as handle:
-            result = pickle.load(handle)
+            features = pickle.load(handle)
             duration = time.time() - start_time
-            logging.debug('loading val2014 features from pickle took %.1f seconds', (duration ))
-            return np.array(result)
+            logging.debug('loading val2014 features from pickle took %.1f seconds', duration)
 
     fe = Vgg16FeatureExtractor(model_ctx=ctx)
 
@@ -141,7 +147,6 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
     df = pd.read_pickle(data_path)
     image_id_list = df[['image_id']].values.tolist()
     result = list()
-    features = dict()
 
     start_extracting_time = time.time()
     for i, image_id in enumerate(image_id_list):
@@ -165,6 +170,10 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
                               i + 1,
                               ((i+1) * 100 / max_lines_retrieved),
                               (time.time() - start_extracting_time))
+        if (i+1) % 1000 == 0:
+            checkpoint_features(pickle_path, features)
+
+    checkpoint_features(pickle_path, features)
 
     for i, image_id in enumerate(image_id_list):
         if image_id[0] in features:
@@ -172,9 +181,6 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
         if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
 
-    with open(pickle_path, 'wb') as handle:
-        logging.debug('saving image features as %s', pickle_path)
-        pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return np.array(result)
 
 
