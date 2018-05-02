@@ -58,6 +58,7 @@ class VQANet(object):
             label = batch.label[0].as_in_context(self.model_ctx)
             output = self.model(data)
 
+            # metric.update(preds=output, labels=label)
             metric.update([label], [output])
         return metric.get()[1]
 
