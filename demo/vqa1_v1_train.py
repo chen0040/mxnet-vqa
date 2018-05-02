@@ -1,9 +1,9 @@
 import os
 import sys
-
+import logging
 
 def patch_path(path):
-    return os.path.join(os.path.dir(__file__), path)
+    return os.path.join(os.path.dirname(__file__), path)
 
 
 def main():
@@ -16,6 +16,7 @@ def main():
     batch_size = 64
     epochs = 10
 
+    logging.basicConfig(level=logging.DEBUG)
 
     from mxnet_vqa.data.coco import train_test_split
     train_data, test_data, meta_data = train_test_split(data_dir_path=data_dir_path,

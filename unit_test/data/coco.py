@@ -75,18 +75,19 @@ class TestCocoDataIter(unittest.TestCase):
         from mxnet_vqa.data.coco import train_test_split
 
         max_lines = 100000
-        train_data, test_data = train_test_split(data_dir_path=data_dir_path,
-                                                 answer_mode='int',
-                                                 question_mode='add',
-                                                 batch_size=64,
-                                                 max_lines_retrieved=max_lines)
+        train_data, test_data, meta = train_test_split(data_dir_path=data_dir_path,
+                                                       answer_mode='int',
+                                                       question_mode='add',
+                                                       batch_size=64,
+                                                       max_lines_retrieved=max_lines)
 
+        print('meta:', meta)
         for i, batch in enumerate(train_data):
             if i == 10:
                 break
             batch_images = batch.data[0]
             batch_questions = batch.data[1]
-            batch_answers = batch.data[2]
+            batch_answers = batch.label[0]
             print('batch images: ', batch_images.shape, 'batch questions', batch_questions.shape,
                   'batch answers: ', batch_answers.shape)
 

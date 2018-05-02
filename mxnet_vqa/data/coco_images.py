@@ -110,7 +110,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
 
     for i, image_id in enumerate(image_id_list):
         if image_id[0] in features:
-            result.append(features[image_id[0]])
+            result.append(features[image_id[0]][0])
         if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
 

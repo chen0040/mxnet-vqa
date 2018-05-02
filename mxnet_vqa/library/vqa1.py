@@ -6,7 +6,7 @@ import numpy as np
 import logging
 
 
-class Net1(gluon.HybridBlock):
+class Net1(gluon.Block):
 
     def __init__(self, **kwargs):
         super(Net1, self).__init__(**kwargs)
@@ -16,7 +16,8 @@ class Net1(gluon.HybridBlock):
             self.fc1 = nn.Dense(8192, activation='relu')
             self.fc2 = nn.Dense(1000)
 
-    def hybrid_forward(self, F, x, *args, **kwargs):
+    def forward(self, x, *args, **kwargs):
+        F = nd
         x1 = F.L2Normalization(x[0])
         x2 = F.L2Normalization(x[1])
         z = F.concat(x1, x2, dim=1)
@@ -91,15 +92,17 @@ class VQANet(object):
         for e in range(epochs):
             data_train.reset()
             for i, batch in enumerate(data_train):
+                batch_size = batch.data[0].shape[0]
+
                 data1 = batch.data[0].as_in_context(self.model_ctx)
-                data2 = batch.data[1].as_in_context(self.model_ctx)
+                data2 = batch.data[1].reshape((batch_size, -1)).as_in_context(self.model_ctx)
                 data = [data1, data2]
                 label = batch.label[0].as_in_context(self.model_ctx)
                 with autograd.record():
                     output = self.model(data)
                     cross_entropy = loss(output, label)
                     cross_entropy.backward()
-                trainer.step(data[0].shape[0])
+                trainer.step(batch_size)
 
                 if i == 0:
                     moving_loss = np.mean(cross_entropy.asnumpy()[0])

@@ -30,9 +30,9 @@ def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
     meta['img_feats_matrix_shape'] = image_feats.shape[1:]
 
     return mx.io.NDArrayIter(data=[nd.array(image_feats[train_idx]),
-                                   nd.array(questions[train_idx]),
-                                   nd.array(answers[train_idx])], batch_size=batch_size), \
+                                   nd.array(questions[train_idx])],
+                             label=[nd.array(answers[train_idx])], batch_size=batch_size), \
            mx.io.NDArrayIter(data=[nd.array(image_feats[test_idx]),
-                                   nd.array(questions[test_idx]),
-                                   nd.array(answers[test_idx])], batch_size=batch_size), \
+                                   nd.array(questions[test_idx])],
+                             label=[nd.array(answers[test_idx])], batch_size=batch_size), \
            meta
