@@ -25,7 +25,7 @@ class Net2(gluon.Block):
         img_dim = x[0].shape[1]
         text_dim = x[1].shape[1]
 
-        dim = max(img_dim, text_dim) + 1024
+        dim = 2048 # max(img_dim, text_dim) + 1024
 
         x1 = F.L2Normalization(x[0])
         x2 = F.L2Normalization(x[1])
@@ -33,8 +33,10 @@ class Net2(gluon.Block):
         # Implement the multimodel compact bilinear pooling (MCB)
         text_ones = F.ones(shape=(self.batch_size, dim - text_dim), ctx=self.model_ctx)
         img_ones = F.ones(shape=(self.batch_size, dim - img_dim), ctx=self.model_ctx)
-        text_data = F.concat(x1, text_ones, dim=1)
-        img_data = F.concat(x2, img_ones, dim=1)
+        text_data = F.concat(x2, text_ones, dim=1)
+        img_data = F.concat(x1, img_ones, dim=1)
+
+        print('ok')
 
         # Initialize hash tables
         S1 = F.array(np.random.randint(0, 2, (1, dim))*2-1, ctx=self.model_ctx)
@@ -44,16 +46,23 @@ class Net2(gluon.Block):
         # Count sketch
         cs1 = C.count_sketch(data=img_data, s=S1, h=H1, name='cs1', out_dim=self.out_dim)
         cs2 = C.count_sketch(data=text_data, s=S2, h=H2, name='cs2', out_dim=self.out_dim)
+
+        print('ok2')
         fft1 = C.fft(data=cs1, name='fft1', compute_size=self.batch_size)
         fft2 = C.fft(data=cs2, name='fft2', compute_size=self.batch_size)
+        print('ok3')
         c = fft1 * fft2
         ifft1 = C.ifft(data=c, name='ifft1', compute_size=self.batch_size)
+        print('ok4')
         # MLP
         z = self.fc1(ifft1)
+        print('ok5')
         z = self.bn(z)
+        print('ok6')
         z = self.dropout(z)
+        print('ok7')
         z = self.fc2(z)
-
+        print('ok8')
         return z
 
 
@@ -122,8 +131,8 @@ class VQANet(object):
         loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
         self.model = Net2(model_ctx=self.model_ctx, batch_size=batch_size, nb_classes=self.nb_classes)
-        self.model.collect_params().initialize(init=mx.init.Xavier(2.24), ctx=self.model_ctx)
-        trainer = gluon.Trainer(self.model.collect_params(), 'sgd', {'learning_rate': learning_rate})
+        self.model.collect_params().initialize(init=mx.init.Xavier(), ctx=self.model_ctx)
+        trainer = gluon.Trainer(self.model.collect_params(), 'adam', {'learning_rate': learning_rate})
 
         moving_loss = 0.
         best_eva = 0
@@ -137,8 +146,10 @@ class VQANet(object):
                 with autograd.record():
                     output = self.model(data)
                     cross_entropy = loss(output, label)
+                    print('ok9')
                     cross_entropy.backward()
-                trainer.step(data[0].shape[0])
+                    print('ok10')
+                trainer.step(batch_size)
 
                 if i == 0:
                     moving_loss = np.mean(cross_entropy.asnumpy()[0])
