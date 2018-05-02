@@ -142,6 +142,8 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
     image_id_list = df[['image_id']].values.tolist()
     result = list()
     features = dict()
+
+    start_extracting_time = time.time()
     for i, image_id in enumerate(image_id_list):
         if image_id[0] not in features:
             if image_id[0] in coco_image_paths:
@@ -155,10 +157,14 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
             break
         if (i + 1) % 20 == 0:
             if max_lines_retrieved == -1:
-                logging.debug('Has extracted features for %d records', i + 1)
+                logging.debug('Has extracted features for %d records (Elapsed: %.1f seconds)',
+                              i + 1,
+                              (time.time() - start_extracting_time) / 1000)
             else:
-                logging.debug('Has extracted features for %d records (Progress: %.2f %%)', i + 1,
-                              ((i+1) * 100 / max_lines_retrieved))
+                logging.debug('Has extracted features for %d records (Progress: %.2f %%) (Elapsed: %.1f seconds)',
+                              i + 1,
+                              ((i+1) * 100 / max_lines_retrieved),
+                              (time.time() - start_extracting_time) / 1000)
 
     for i, image_id in image_id_list:
         if image_id[0] in features:
