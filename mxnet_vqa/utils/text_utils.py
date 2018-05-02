@@ -2,7 +2,8 @@ import numpy as np
 
 
 def pad_sequence(seq, max_sequence_length, padding):
-    vec = np.zeros(shape=max_sequence_length)
+    seq = np.array(seq)
+    vec = np.zeros(shape=(max_sequence_length, *seq.shape[1:]))
     if padding == 'left':
         start_index = 0
         if len(seq) < max_sequence_length:
@@ -20,10 +21,11 @@ def pad_sequences(seq_list, max_sequence_length=-1, padding='left'):
     if max_sequence_length == -1:
         max_sequence_length = max([len(seq) for seq in seq_list])
 
-    matrix = np.zeros(shape=(seq_count, max_sequence_length))
+    first_item = np.array(seq_list[0])
+    matrix = np.zeros(shape=(seq_count, max_sequence_length, *first_item.shape[1:]))
 
     for i, seq in enumerate(seq_list):
-        matrix[i, :] = pad_sequence(seq, max_sequence_length, padding)
+        matrix[i] = pad_sequence(seq, max_sequence_length, padding)
 
     return matrix
 

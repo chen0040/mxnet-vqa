@@ -1,12 +1,11 @@
 import mxnet as mx
-from mxnet.gluon.model_zoo import vision as models
-from mxnet.gluon.utils import download
-from mxnet import image
 from mxnet import gluon, autograd, nd
 from mxnet.gluon import nn
 import os
 import numpy as np
 import logging
+
+from mxnet_vqa.utils.image_utils import load_vgg16_image
 
 
 class Net1(gluon.HybridBlock):
@@ -30,12 +29,14 @@ class Net1(gluon.HybridBlock):
         return z
 
 
-class VQANet():
+
+
+
+class VQANet(object):
     model_name = 'vqa-net-1'
 
     def __init__(self, model_ctx=mx.cpu(), data_ctx=mx.cpu()):
         self.model = None
-        self.image_net = models.vgg16(pretrained=True)
         self.model_ctx = model_ctx
         self.data_ctx = data_ctx
 

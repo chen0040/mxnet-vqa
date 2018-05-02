@@ -2,6 +2,9 @@ import urllib.request
 import os
 import zipfile
 import numpy as np
+import logging
+import pickle
+import time
 
 from mxnet_vqa.utils.download_utils import reporthook
 
@@ -14,13 +17,13 @@ def download_glove(data_dir_path, to_file_path):
         glove_zip = data_dir_path + '/glove.6B.zip'
 
         if not os.path.exists(glove_zip):
-            print('glove file does not exist, downloading from internet')
+            logging.debug('glove file does not exist, downloading from internet')
             urllib.request.urlretrieve(url='http://nlp.stanford.edu/data/glove.6B.zip', filename=glove_zip,
                                        reporthook=reporthook)
 
-        print('unzipping glove file')
+        logging.debug('unzipping glove file')
         zip_ref = zipfile.ZipFile(glove_zip, 'r')
-        zip_ref.extractall('very_large_data')
+        zip_ref.extractall(data_dir_path)
         zip_ref.close()
 
 
@@ -34,16 +37,31 @@ def load_glove(data_dir_path=None, embedding_dim=None):
     if embedding_dim is None:
         embedding_dim = 100
 
+    glove_pickle_path = data_dir_path + "/glove.6B." + str(embedding_dim) + "d.pickle"
+    if os.path.exists(glove_pickle_path):
+        logging.info('loading glove embedding from %s', glove_pickle_path)
+        start_time = time.time()
+        with open(glove_pickle_path, 'rb') as handle:
+            result = pickle.load(handle)
+            duration = time.time() - start_time
+            logging.debug('loading glove from pickle tooks %.1f seconds', (duration / 1000))
+            return result
     glove_file_path = data_dir_path + "/glove.6B." + str(embedding_dim) + "d.txt"
     download_glove(data_dir_path, glove_file_path)
     _word2em = {}
+    logging.debug('loading glove embedding from %s', glove_file_path)
     file = open(glove_file_path, mode='rt', encoding='utf8')
-    for line in file:
+    for i, line in enumerate(file):
         words = line.strip().split()
         word = words[0]
         embeds = np.array(words[1:], dtype=np.float32)
         _word2em[word] = embeds
+        if i % 1000 == 0:
+            logging.debug('loaded %d %d-dim glove words', i, embedding_dim)
     file.close()
+    with open(glove_pickle_path, 'wb') as handle:
+        logging.debug('saving glove embedding as %s', glove_pickle_path)
+        pickle.dump(_word2em, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return _word2em
 
 
