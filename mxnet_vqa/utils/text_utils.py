@@ -1,5 +1,5 @@
 import numpy as np
-
+import nltk
 
 def pad_sequence(seq, max_sequence_length, padding):
     seq = np.array(seq)
@@ -28,6 +28,10 @@ def pad_sequences(seq_list, max_sequence_length=-1, padding='left'):
         matrix[i] = pad_sequence(seq, max_sequence_length, padding)
 
     return matrix
+
+
+def word_tokenize(sentence):
+    return nltk.word_tokenize(sentence)
 
 
 
