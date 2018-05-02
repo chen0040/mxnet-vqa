@@ -38,7 +38,7 @@ def get_questions_matrix_concat(data_dir_path, max_lines_retrieved=-1, split='va
     seq_list = []
 
     for i, question in enumerate(questions):
-        words = word_tokenize(question[0])
+        words = word_tokenize(question[0].lower())
         seq = []
         for word in words:
             emb = np.zeros(shape=300)
@@ -60,7 +60,7 @@ def get_questions_matrix_sum(data_dir_path, max_lines_retrieved=-1, split='val')
     seq_list = []
 
     for i, question in enumerate(questions):
-        words = word_tokenize(question[0])
+        words = word_tokenize(question[0].lower())
         E = np.zeros(shape=(300, len(words)))
         for j, word in enumerate(words):
             if word in glove_word2emb:

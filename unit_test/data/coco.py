@@ -47,7 +47,7 @@ class TestCocoValSet(unittest.TestCase):
         from mxnet_vqa.data.coco_answers import get_answers_matrix
 
         max_lines = 100000
-        expected_max_sequence_length = 23
+        expected_max_sequence_length = 25
         glove_dim = 300
         questions = get_questions_matrix(data_dir_path, max_lines_retrieved=max_lines)
         self.assertTupleEqual((max_lines, expected_max_sequence_length, glove_dim), questions.shape)
@@ -58,7 +58,7 @@ class TestCocoValSet(unittest.TestCase):
         answers = get_answers_matrix(data_dir_path, max_lines_retrieved=max_lines)
         self.assertTupleEqual((max_lines, nb_classes), answers.shape)
         answers = get_answers_matrix(data_dir_path, max_lines_retrieved=max_lines, mode='int')
-        self.assertTupleEqual((max_lines), answers.shape)
+        self.assertTupleEqual((max_lines, ), answers.shape)
 
         # features = get_coco_features(data_dir_path)
         # print('features: ', features.shape)

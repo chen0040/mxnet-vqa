@@ -5,3 +5,4 @@ glove.6B.100d.txt
 glove.6B.200d.txt
 glove.6B.300d.txt
 glove.6B.300d.pickle
+coco_val2014_feats_100000.pickle

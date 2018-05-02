@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 import numpy as np
 
+
 def int_to_answers(data_dir_path, split):
     data_path = os.path.join(data_dir_path, 'data/val_qa')
     if split == 'train':
