@@ -14,7 +14,7 @@ def main():
 
     answer_mode = 'int'
     question_mode = 'add'
-    batch_size = 8
+    batch_size = 64
     epochs = 10
 
     logging.basicConfig(level=logging.DEBUG)
@@ -34,6 +34,7 @@ def main():
     net.input_mode_question = question_mode
     net.input_mode_answer = answer_mode
     net.version = '1'
+    net.out_dim = 1000  # default is 10000, which is too high for my graphics card
     net.fit(data_train=train_data, data_eva=test_data, meta=meta_data,
             batch_size=batch_size,
             model_dir_path=model_dir_path, epochs=epochs)

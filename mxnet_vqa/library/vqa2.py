@@ -9,10 +9,10 @@ import logging
 
 class Net2(gluon.Block):
 
-    def __init__(self, model_ctx, nb_classes, batch_size, **kwargs):
+    def __init__(self, model_ctx, out_dim, nb_classes, batch_size, **kwargs):
         super(Net2, self).__init__(**kwargs)
         self.model_ctx = model_ctx
-        self.out_dim = 10000
+        self.out_dim = out_dim
         self.batch_size = batch_size
         with self.name_scope():
             self.bn = nn.BatchNorm()
@@ -22,55 +22,39 @@ class Net2(gluon.Block):
 
     def forward(self, x, *args, **kwargs):
         F = nd
-        img_dim = x[0].shape[1]
-        text_dim = x[1].shape[1]
-
-        dim = 2048 # max(img_dim, text_dim) + 1024
 
         x1 = F.L2Normalization(x[0])
         x2 = F.L2Normalization(x[1])
 
-        # Implement the multimodel compact bilinear pooling (MCB)
-        text_ones = F.ones(shape=(self.batch_size, dim - text_dim), ctx=self.model_ctx)
-        img_ones = F.ones(shape=(self.batch_size, dim - img_dim), ctx=self.model_ctx)
-        text_data = F.concat(x2, text_ones, dim=1)
-        img_data = F.concat(x1, img_ones, dim=1)
+        x1 = F.concat(x1, F.ones((self.batch_size, 128), ctx=self.model_ctx), dim=1)
+        x2 = F.concat(x2, F.ones((self.batch_size, 128), ctx=self.model_ctx), dim=1)
 
-        print('ok')
+        x1_dim = x1.shape[1]
+        x2_dim = x2.shape[1]
 
         # Initialize hash tables
-        S1 = F.array(np.random.randint(0, 2, (1, dim))*2-1, ctx=self.model_ctx)
-        H1 = F.array(np.random.randint(0, self.out_dim, (1, dim)), ctx=self.model_ctx)
-        S2 = F.array(np.random.randint(0, 2, (1, dim))*2-1, ctx=self.model_ctx)
-        H2 = F.array(np.random.randint(0, self.out_dim, (1, dim)), ctx=self.model_ctx)
+        S1 = F.array(np.random.randint(0, 2, (1, x1_dim))*2-1, ctx=self.model_ctx)
+        H1 = F.array(np.random.randint(0, self.out_dim, (1, x1_dim)), ctx=self.model_ctx)
+        S2 = F.array(np.random.randint(0, 2, (1, x2_dim))*2-1, ctx=self.model_ctx)
+        H2 = F.array(np.random.randint(0, self.out_dim, (1, x2_dim)), ctx=self.model_ctx)
         # Count sketch
-        cs1 = C.count_sketch(data=img_data, s=S1, h=H1, name='cs1', out_dim=self.out_dim)
-        cs2 = C.count_sketch(data=text_data, s=S2, h=H2, name='cs2', out_dim=self.out_dim)
+        cs1 = C.count_sketch(data=x1, s=S1, h=H1, name='cs1', out_dim=self.out_dim)
+        cs2 = C.count_sketch(data=x2, s=S2, h=H2, name='cs2', out_dim=self.out_dim)
 
-        print('ok2')
         fft1 = C.fft(data=cs1, name='fft1', compute_size=self.batch_size)
         fft2 = C.fft(data=cs2, name='fft2', compute_size=self.batch_size)
-        print('ok3')
         c = fft1 * fft2
         ifft1 = C.ifft(data=c, name='ifft1', compute_size=self.batch_size)
-        print('ok4')
         # MLP
         z = self.fc1(ifft1)
-        print('ok5')
         z = self.bn(z)
-        print('ok6')
         z = self.dropout(z)
-        print('ok7')
         z = self.fc2(z)
-        print('ok8')
         return z
 
 
-
-
-
 class VQANet(object):
-    model_name = 'vqa-net-1'
+    model_name = 'vqa-net-2'
 
     def __init__(self, model_ctx=mx.cpu(), data_ctx=mx.cpu()):
         self.model = None
@@ -81,6 +65,7 @@ class VQANet(object):
         self.input_mode_question = 'add'
         self.nb_classes = 1001
         self.batch_size = 64
+        self.out_dim = 10000
         self.meta = None
 
     def get_config_file_path(self, model_dir_path):
@@ -110,7 +95,8 @@ class VQANet(object):
         self.nb_classes = config['nb_classes']
         self.batch_size = config['batch_size']
         self.meta = config['meta']
-        self.model = Net2(model_ctx=self.model_ctx, nb_classes=self.nb_classes, batch_size=self.batch_size)
+        self.out_dim = config['out_dim']
+        self.model = Net2(model_ctx=self.model_ctx, out_dim=self.out_dim, nb_classes=self.nb_classes, batch_size=self.batch_size)
         self.model.load_params(self.get_params_file_path(model_dir_path), ctx=self.model_ctx)
 
     def checkpoint(self, model_dir_path):
@@ -125,12 +111,13 @@ class VQANet(object):
         config['input_mode_answer'] = self.input_mode_answer
         config['input_mode_question'] = self.input_mode_question
         config['nb_classes'] = self.nb_classes
+        config['out_dim'] = self.out_dim
         config['meta'] = meta
         np.save(self.get_config_file_path(model_dir_path), config)
 
         loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
-        self.model = Net2(model_ctx=self.model_ctx, batch_size=batch_size, nb_classes=self.nb_classes)
+        self.model = Net2(model_ctx=self.model_ctx, out_dim=self.out_dim, batch_size=batch_size, nb_classes=self.nb_classes)
         self.model.collect_params().initialize(init=mx.init.Xavier(), ctx=self.model_ctx)
         trainer = gluon.Trainer(self.model.collect_params(), 'adam', {'learning_rate': learning_rate})
 
@@ -146,9 +133,7 @@ class VQANet(object):
                 with autograd.record():
                     output = self.model(data)
                     cross_entropy = loss(output, label)
-                    print('ok9')
                     cross_entropy.backward()
-                    print('ok10')
                 trainer.step(batch_size)
 
                 if i == 0:
