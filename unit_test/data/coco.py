@@ -58,10 +58,37 @@ class TestCocoValSet(unittest.TestCase):
         answers = get_answers_matrix(data_dir_path, max_lines_retrieved=max_lines)
         self.assertTupleEqual((max_lines, nb_classes), answers.shape)
         answers = get_answers_matrix(data_dir_path, max_lines_retrieved=max_lines, mode='int')
-        self.assertTupleEqual((max_lines, ), answers.shape)
+        self.assertTupleEqual((max_lines,), answers.shape)
 
         # features = get_coco_features(data_dir_path)
         # print('features: ', features.shape)
+
+
+class TestCocoDataIter(unittest.TestCase):
+
+    def test_data_iter(self):
+        sys.path.append(patch_path('..'))
+        data_dir_path = patch_path('../demo/data/coco')
+
+        logging.basicConfig(level=logging.DEBUG)
+
+        from mxnet_vqa.data.coco import train_test_split
+
+        max_lines = 100000
+        train_data, test_data = train_test_split(data_dir_path=data_dir_path,
+                                                 answer_mode='int',
+                                                 question_mode='add',
+                                                 batch_size=64,
+                                                 max_lines_retrieved=max_lines)
+
+        for i, batch in enumerate(train_data):
+            if i == 10:
+                break
+            batch_images = batch.data[0]
+            batch_questions = batch.data[1]
+            batch_answers = batch.data[2]
+            print('batch images: ', batch_images.shape, 'batch questions', batch_questions.shape,
+                  'batch answers: ', batch_answers.shape)
 
 
 if __name__ == '__main__':

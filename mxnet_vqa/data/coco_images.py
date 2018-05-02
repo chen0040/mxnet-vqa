@@ -91,7 +91,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
                 logging.warning('Failed to extract image features for image id %s', image_id[0])
         if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
-        if (i + 1) % 200 == 0:
+        if (i + 1) % 500 == 0:
             if max_lines_retrieved == -1:
                 logging.debug('Has extracted features for %d records (Elapsed: %.1f seconds)',
                               i + 1,
