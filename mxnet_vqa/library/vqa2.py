@@ -1,5 +1,6 @@
 import mxnet as mx
-from mxnet import gluon, autograd, nd
+from mxnet import gluon, autograd
+import mxnet.ndarray.contrib as C
 from mxnet.gluon import nn
 import os
 import numpy as np
@@ -10,10 +11,11 @@ from mxnet_vqa.utils.image_utils import load_vgg16_image
 
 class Net2(gluon.HybridBlock):
 
-    def __init__(self, model_ctx, **kwargs):
+    def __init__(self, model_ctx, batch_size, **kwargs):
         super(Net2, self).__init__(**kwargs)
         self.model_ctx = model_ctx
         self.out_dim = 10000
+        self.batch_size = batch_size
         with self.name_scope():
             self.bn = nn.BatchNorm()
             self.dropout = nn.Dropout(.3)
@@ -21,18 +23,30 @@ class Net2(gluon.HybridBlock):
             self.fc2 = nn.Dense(1000)
 
     def hybrid_forward(self, F, x, *args, **kwargs):
-        batch_size = x[0].shape[0]
         x1 = F.L2Normalization(x[0])
         x2 = F.L2Normalization(x[1])
         # Implement the multimodel compact bilinear pooling (MCB)
-        text_ones = F.ones(shape=(batch_size, 2048), ctx=self.model_ctx)
-        img_ones = F.ones(shape=(batch_size, 1024), ctx=self.model_ctx)
+        text_ones = F.ones(shape=(self.batch_size, 2048), ctx=self.model_ctx)
+        img_ones = F.ones(shape=(self.batch_size, 1024), ctx=self.model_ctx)
         text_data = F.Concat(x1, text_ones, dim=1)
         img_data = F.Contact(x2, img_ones, dim=1)
         # Initialize hash tables
         S1 = F.array(np.random.randint(0, 2, (1, 3072))*2-1, ctx=self.model_ctx)
         H1 = F.array(np.random.randint(0, self.out_dim, (1, 3072)), ctx=self.model_ctx)
-        S2 = F.array(np.random.randint(0, 2, (1, 3072)))
+        S2 = F.array(np.random.randint(0, 2, (1, 3072)), ctx=self.model_ctx)
+        H2 = F.array(np.random.randint(0, self.out_dim, (1, 3072)), ctx=self.model_ctx)
+        # Count sketch
+        cs1 = C.count_sketch(data=img_data, s=S1, h=H1, name='cs1', out_dim=self.out_dim)
+        cs2 = C.count_sketch(data=text_data, s=S2, h=H2, name='cs2', out_dim=self.out_dim)
+        fft1 = C.fft(data=cs1, name='fft1', compute_size=self.batch_size)
+        fft2 = C.fft(data=cs2, name='fft2', compute_size=self.batch_size)
+        c = fft1 * fft2
+        ifft1 = C.ifft(data=c, name='ifft1', compute_size=self.batch_size)
+        # MLP
+        z = self.fc1(ifft1)
+        z = self.bn(z)
+        z = self.dropout(z)
+        z = self.fc2(z)
 
         return z
 
@@ -71,22 +85,24 @@ class VQANet(object):
 
     def load_model(self, model_dir_path):
         config = np.load(self.get_config_file_path(model_dir_path)).item()
-        self.model = Net2()
+        batch_size = config['batch_size']
+        self.model = Net2(model_ctx=self.model_ctx, batch_size=batch_size)
         self.model.load_params(self.get_params_file_path(model_dir_path), ctx=self.model_ctx)
 
     def checkpoint(self, model_dir_path):
         self.model.save_params(self.get_params_file_path(model_dir_path))
 
-    def fit(self, data_train, data_eva, model_dir_path, epochs=10, batch_size=32, learning_rate=0.01):
+    def fit(self, data_train, data_eva, model_dir_path, epochs=10, batch_size=64, learning_rate=0.01):
 
         config = dict()
+        config['batch_size'] = batch_size
         np.save(self.get_config_file_path(model_dir_path), config)
 
         loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
         metric = mx.metric.Accuracy()
 
-        self.model = Net1()
+        self.model = Net2(model_ctx=self.model_ctx, batch_size=batch_size)
         self.model.collect_params().initialize(init=mx.init.Xavier(2.24), ctx=self.model_ctx)
         trainer = gluon.Trainer(self.model.collect_params(), 'sgd', {'learning_rate': learning_rate})
 

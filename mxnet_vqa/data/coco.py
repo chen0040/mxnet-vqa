@@ -127,7 +127,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
     if max_lines_retrieved == -1:
         pickle_name = pickle_name + '.pickle'
     else:
-        pickle_name = pickle_name + str(max_lines_retrieved) + '.pickle'
+        pickle_name = pickle_name + '_' + str(max_lines_retrieved) + '.pickle'
     pickle_path = os.path.join(data_dir_path, pickle_name)
 
     features = dict()
