@@ -5,8 +5,6 @@ import os
 import numpy as np
 import logging
 
-from mxnet_vqa.utils.image_utils import load_vgg16_image
-
 
 class Net1(gluon.HybridBlock):
 
@@ -29,24 +27,23 @@ class Net1(gluon.HybridBlock):
         return z
 
 
-
-
-
 class VQANet(object):
     model_name = 'vqa-net-1'
 
     def __init__(self, model_ctx=mx.cpu(), data_ctx=mx.cpu()):
         self.model = None
+        self.version = '0'
         self.model_ctx = model_ctx
         self.data_ctx = data_ctx
+        self.input_mode_answer = 'int'
+        self.input_mode_question = 'add'
+        self.meta = None
 
-    @staticmethod
-    def get_config_file_path(model_dir_path):
-        return os.path.join(model_dir_path, VQANet.model_name + '-config.npy')
+    def get_config_file_path(self, model_dir_path):
+        return os.path.join(model_dir_path, VQANet.model_name + '-v' + self.version + '-config.npy')
 
-    @staticmethod
-    def get_params_file_path(model_dir_path):
-        return os.path.join(model_dir_path, VQANet.model_name + '-net.params')
+    def get_params_file_path(self, model_dir_path):
+        return os.path.join(model_dir_path, VQANet.model_name + '-v' + self.version + '-net.params')
 
     def evaluate_accuracy(self, metric, data_iterator):
         data_iterator.reset()
@@ -63,15 +60,22 @@ class VQANet(object):
 
     def load_model(self, model_dir_path):
         config = np.load(self.get_config_file_path(model_dir_path)).item()
+        self.input_mode_answer = config['input_mode_answer']
+        self.input_mode_question = config['input_mode_question']
+        self.meta = config['meta']
         self.model = Net1()
         self.model.load_params(self.get_params_file_path(model_dir_path), ctx=self.model_ctx)
 
     def checkpoint(self, model_dir_path):
         self.model.save_params(self.get_params_file_path(model_dir_path))
 
-    def fit(self, data_train, data_eva, model_dir_path, epochs=10, batch_size=32, learning_rate=0.01):
+    def fit(self, data_train, data_eva, meta, model_dir_path, epochs=10, learning_rate=0.01):
 
         config = dict()
+        config['input_mode_answer'] = self.input_mode_answer
+        config['input_mode_question'] = self.input_mode_question
+        config['meta'] = meta
+        self.meta = meta
         np.save(self.get_config_file_path(model_dir_path), config)
 
         loss = gluon.loss.SoftmaxCrossEntropyLoss()

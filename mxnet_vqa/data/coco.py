@@ -23,9 +23,16 @@ def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
     indices = np.random.permutation(record_count)
     training_record_count = record_count - int(record_count * test_size)
     train_idx, test_idx = indices[:training_record_count], indices[training_record_count:]
+
+    meta = dict()
+    meta['questions_matrix_shape'] = questions.shape[1:]
+    meta['answers_matrix_shape'] = answers.shape[1:]
+    meta['img_feats_matrix_shape'] = image_feats.shape[1:]
+
     return mx.io.NDArrayIter(data=[nd.array(image_feats[train_idx]),
                                    nd.array(questions[train_idx]),
                                    nd.array(answers[train_idx])], batch_size=batch_size), \
            mx.io.NDArrayIter(data=[nd.array(image_feats[test_idx]),
                                    nd.array(questions[test_idx]),
-                                   nd.array(answers[test_idx])], batch_size=batch_size)
+                                   nd.array(answers[test_idx])], batch_size=batch_size), \
+           meta

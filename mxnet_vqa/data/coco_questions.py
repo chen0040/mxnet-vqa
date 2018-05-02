@@ -24,14 +24,15 @@ def get_questions(data_dir_path, max_lines_retrieved=-1, split='val'):
     return questions[:min(max_lines_retrieved, len(questions))]
 
 
-def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='concat'):
+def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='concat', max_sequence_length=-1):
     if mode == 'add':
         return get_questions_matrix_sum(data_dir_path, max_lines_retrieved, split)
     else:
-        return get_questions_matrix_concat(data_dir_path, max_lines_retrieved, split)
+        return get_questions_matrix_concat(data_dir_path, max_lines_retrieved, split,
+                                           max_sequence_length=max_sequence_length)
 
 
-def get_questions_matrix_concat(data_dir_path, max_lines_retrieved=-1, split='val'):
+def get_questions_matrix_concat(data_dir_path, max_lines_retrieved=-1, split='val', max_sequence_length=-1):
     questions = get_questions(data_dir_path, max_lines_retrieved, split)
     glove_word2emb = glove_word2emb_300(data_dir_path)
     logging.debug('glove: %d words loaded', len(glove_word2emb))
@@ -48,7 +49,7 @@ def get_questions_matrix_concat(data_dir_path, max_lines_retrieved=-1, split='va
         if (i + 1) % 10000 == 0:
             logging.debug('loaded %d questions', i + 1)
         seq_list.append(seq)
-    question_matrix = pad_sequences(seq_list)
+    question_matrix = pad_sequences(seq_list, max_sequence_length=max_sequence_length)
 
     return question_matrix
 
@@ -70,6 +71,6 @@ def get_questions_matrix_sum(data_dir_path, max_lines_retrieved=-1, split='val')
         if (i + 1) % 10000 == 0:
             logging.debug('loaded %d questions', i + 1)
         seq_list.append(E)
-    question_matrix = pad_sequences(seq_list)
+    question_matrix = np.array(seq_list)
 
     return question_matrix
