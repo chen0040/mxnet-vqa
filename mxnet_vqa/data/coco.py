@@ -142,20 +142,25 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
     fe = Vgg16FeatureExtractor(model_ctx=ctx)
 
     data_path = os.path.join(data_dir_path, 'data/val_qa')
-    coco_image_paths = load_coco_2014_val_images_dict(coco_images_dir_path)
+    coco_image_paths = None
 
     df = pd.read_pickle(data_path)
     image_id_list = df[['image_id']].values.tolist()
     result = list()
 
     start_extracting_time = time.time()
+    features_updated = False
     for i, image_id in enumerate(image_id_list):
         if image_id[0] not in features:
+            if coco_image_paths is None:
+                load_coco_2014_val_images_dict(coco_images_dir_path)
+
             if image_id[0] in coco_image_paths:
                 img_path = coco_image_paths[image_id[0]]
                 f = fe.extract_image_features(img_path)
                 feat = f.asnumpy()
                 features[image_id[0]] = feat
+                features_updated = True
             else:
                 logging.warning('Failed to extract image features for image id %s', image_id[0])
         if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
@@ -170,10 +175,12 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
                               i + 1,
                               ((i+1) * 100 / max_lines_retrieved),
                               (time.time() - start_extracting_time))
-        if (i+1) % 1000 == 0:
+        if (i+1) % 1000 == 0 and features_updated:
             checkpoint_features(pickle_path, features)
+            features_updated = False
 
-    checkpoint_features(pickle_path, features)
+    if features_updated:
+        checkpoint_features(pickle_path, features)
 
     for i, image_id in enumerate(image_id_list):
         if image_id[0] in features:
