@@ -85,6 +85,11 @@ def get_questions(data_dir_path, max_lines_retrieved=-1, split='val'):
 
 def load_coco_2014_val_images_dict(coco_images_dir_path):
     result = dict()
+    if not os.path.exists(coco_images_dir_path):
+        logging.error('Please download and extract val2014 images to %s before continuing',
+                      coco_images_dir_path)
+        sys.exit()
+
     for root, dirs, files in os.walk(coco_images_dir_path):
         for fn in files:
             if fn.lower().endswith('.jpg'):
@@ -127,6 +132,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
             duration = time.time() - start_time
             logging.debug('loading val2014 features from pickle took %.1f seconds', (duration / 1000))
             return np.array(result)
+
     fe = Vgg16FeatureExtractor(model_ctx=ctx)
 
     data_path = os.path.join(data_dir_path, 'data/val_qa')
@@ -137,18 +143,22 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
     result = list()
     features = dict()
     for i, image_id in enumerate(image_id_list):
-        if image_id[0] in features:
-            continue
-        if image_id[0] in coco_image_paths:
-            img_path = coco_image_paths[image_id[0]]
-            f = fe.extract_image_features(img_path)
-            features[image_id[0]] = f
-        else:
-            logging.warning('Failed to extract image features for image id %s', image_id[0])
+        if image_id[0] not in features:
+            if image_id[0] in coco_image_paths:
+                img_path = coco_image_paths[image_id[0]]
+                f = fe.extract_image_features(img_path)
+                feat = f.asnumpy()
+                features[image_id[0]] = feat
+            else:
+                logging.warning('Failed to extract image features for image id %s', image_id[0])
         if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
         if (i + 1) % 20 == 0:
-            logging.debug('extracted features for %d records', i + 1)
+            if max_lines_retrieved == -1:
+                logging.debug('Has extracted features for %d records', i + 1)
+            else:
+                logging.debug('Has extracted features for %d records (Progress: %.2f %%)', i + 1,
+                              ((i+1) * 100 / max_lines_retrieved))
 
     for i, image_id in image_id_list:
         if image_id[0] in features:
