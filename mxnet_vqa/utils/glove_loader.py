@@ -44,7 +44,7 @@ def load_glove(data_dir_path=None, embedding_dim=None):
         with open(glove_pickle_path, 'rb') as handle:
             result = pickle.load(handle)
             duration = time.time() - start_time
-            logging.debug('loading glove from pickle tooks %.1f seconds', (duration / 1000))
+            logging.debug('loading glove from pickle tooks %.1f seconds', (duration ))
             return result
     glove_file_path = data_dir_path + "/glove.6B." + str(embedding_dim) + "d.txt"
     download_glove(data_dir_path, glove_file_path)

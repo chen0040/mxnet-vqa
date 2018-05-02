@@ -130,7 +130,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
         with open(pickle_path, 'rb') as handle:
             result = pickle.load(handle)
             duration = time.time() - start_time
-            logging.debug('loading val2014 features from pickle took %.1f seconds', (duration / 1000))
+            logging.debug('loading val2014 features from pickle took %.1f seconds', (duration ))
             return np.array(result)
 
     fe = Vgg16FeatureExtractor(model_ctx=ctx)
@@ -159,12 +159,12 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx
             if max_lines_retrieved == -1:
                 logging.debug('Has extracted features for %d records (Elapsed: %.1f seconds)',
                               i + 1,
-                              (time.time() - start_extracting_time) / 1000)
+                              (time.time() - start_extracting_time))
             else:
                 logging.debug('Has extracted features for %d records (Progress: %.2f %%) (Elapsed: %.1f seconds)',
                               i + 1,
                               ((i+1) * 100 / max_lines_retrieved),
-                              (time.time() - start_extracting_time) / 1000)
+                              (time.time() - start_extracting_time))
 
     for i, image_id in image_id_list:
         if image_id[0] in features:
