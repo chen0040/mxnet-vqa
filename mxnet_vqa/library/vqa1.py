@@ -84,7 +84,7 @@ class VQANet(object):
         metric = mx.metric.Accuracy()
 
         self.model = Net1()
-        self.model.collect_params().initialize(init=mx.init.Xavier(2.24), ctx=self.model_ctx)
+        self.model.collect_params().initialize(init=mx.init.Xavier(), ctx=self.model_ctx)
         trainer = gluon.Trainer(self.model.collect_params(), 'sgd', {'learning_rate': learning_rate})
 
         moving_loss = 0.
@@ -108,8 +108,8 @@ class VQANet(object):
                     moving_loss = np.mean(cross_entropy.asnumpy()[0])
                 else:
                     moving_loss = .99 * moving_loss + .01 * np.mean(cross_entropy.asnumpy()[0])
-                # if i % 200 == 0:
-                #    print("Epoch %s, batch %s. Moving avg of loss: %s" % (e, i, moving_loss))
+                if i % 200 == 0:
+                    print("Epoch %s, batch %s. Moving avg of loss: %s" % (e, i, moving_loss))
             eva_accuracy = self.evaluate_accuracy(metric=metric, data_iterator=data_eva)
             train_accuracy = self.evaluate_accuracy(metric=metric, data_iterator=data_train)
             print("Epoch %s. Loss: %s, Train_acc %s, Eval_acc %s" % (e, moving_loss, train_accuracy, eva_accuracy))
