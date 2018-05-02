@@ -2,7 +2,7 @@ import numpy as np
 from mxnet import nd, image
 from mxnet.gluon.model_zoo import vision as models
 from mxnet.gluon.utils import download
-
+import mxnet as mx
 
 def transform(data):
     data = data.transpose((2, 0, 1)).expand_dims(axis=0)
@@ -20,10 +20,13 @@ def load_vgg16_image(img_path):
 
 class Vgg16FeatureExtractor(object):
 
-    def __init__(self):
+    def __init__(self, model_ctx=mx.cpu()):
+        self.model_ctx = model_ctx
         self.image_net = models.vgg16(pretrained=True)
+        self.image_net.collect_params().reset_ctx(ctx=model_ctx)
 
     def extract_image_features(self, image_path):
         img = load_vgg16_image(image_path)
         img = transform(img)
+        img = img.as_in_context(self.model_ctx)
         return self.image_net(img)

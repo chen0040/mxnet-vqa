@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 import unittest
 import logging
+import mxnet as mx
 
 
 def patch_path(path):
@@ -22,7 +23,10 @@ class TestLoadCocoValImages(unittest.TestCase):
         max_lines = 100000
         result = get_coco_2014_val_images(data_dir_path, coco_image_dir_path, max_lines_retrieved=max_lines)
         self.assertEqual(max_lines, len(result))
-        img_feats = get_coco_2014_val_image_features(data_dir_path, coco_image_dir_path, max_lines_retrieved=max_lines)
+        img_feats = get_coco_2014_val_image_features(data_dir_path,
+                                                     coco_image_dir_path,
+                                                     max_lines_retrieved=max_lines,
+                                                     ctx=mx.gpu(0))
         print('img_features: ', img_feats.shape)
         self.assertEqual(max_lines, len(img_feats))
 

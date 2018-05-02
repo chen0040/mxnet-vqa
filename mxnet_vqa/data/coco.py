@@ -9,6 +9,8 @@ from mxnet_vqa.utils.text_utils import pad_sequences
 import logging
 import time
 import pickle
+import mxnet as mx
+
 
 def int_to_answers(data_dir_path, split):
     data_path = os.path.join(data_dir_path, 'data/val_qa')
@@ -59,8 +61,8 @@ def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val'):
 
     for i, answer in enumerate(answers):
         answer_matrix[i] = answer_to_onehot_dict.get(answer[0].lower(), default_onehot)
-        if (i+1) % 10000 == 0:
-            logging.debug('loaded %d answers', i+1)
+        if (i + 1) % 10000 == 0:
+            logging.debug('loaded %d answers', i + 1)
 
     return answer_matrix
 
@@ -109,7 +111,7 @@ def get_coco_2014_val_images(data_dir_path, coco_images_dir_path, max_lines_retr
     return result
 
 
-def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, max_lines_retrieved=-1):
+def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, ctx=mx.cpu(), max_lines_retrieved=-1):
     pickle_name = 'coco_val2014_feats'
     if max_lines_retrieved == -1:
         pickle_name = pickle_name + '.pickle'
@@ -125,7 +127,7 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, max_li
             duration = time.time() - start_time
             logging.debug('loading val2014 features from pickle took %.1f seconds', (duration / 1000))
             return np.array(result)
-    fe = Vgg16FeatureExtractor()
+    fe = Vgg16FeatureExtractor(model_ctx=ctx)
 
     data_path = os.path.join(data_dir_path, 'data/val_qa')
     coco_image_paths = load_coco_2014_val_images_dict(coco_images_dir_path)
@@ -143,15 +145,15 @@ def get_coco_2014_val_image_features(data_dir_path, coco_images_dir_path, max_li
             features[image_id[0]] = f
         else:
             logging.warning('Failed to extract image features for image id %s', image_id[0])
-        if max_lines_retrieved != -1 and (i+1) == max_lines_retrieved:
+        if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
-        if (i+1) % 20 == 0:
-            logging.debug('extracted features for %d records', i+1)
+        if (i + 1) % 20 == 0:
+            logging.debug('extracted features for %d records', i + 1)
 
     for i, image_id in image_id_list:
         if image_id[0] in features:
             result.append(features[image_id[0]])
-        if max_lines_retrieved != -1 and (i+1) == max_lines_retrieved:
+        if max_lines_retrieved != -1 and (i + 1) == max_lines_retrieved:
             break
 
     with open(pickle_path, 'wb') as handle:
@@ -178,8 +180,8 @@ def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val'):
             if word in glove_word2emb:
                 emb = glove_word2emb[word]
             seq.append(emb)
-        if (i+1) % 10000 == 0:
-            logging.debug('loaded %d questions', i+1)
+        if (i + 1) % 10000 == 0:
+            logging.debug('loaded %d questions', i + 1)
         seq_list.append(seq)
     question_matrix = pad_sequences(seq_list)
 
