@@ -5,4 +5,6 @@ You only have to do this if you wish to visualize the predictions
 
 For data preprocessing please take a look at https://github.com/VedantYadav/VQA
 
-Download the precomputed MS COCO features from http://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip and extract them in this folder.
+The origin val2014 images can be downloaded from http://cocodataset.org/#download
+
+The precomputed MS COCO features can be downloaded from http://cs.stanford.edu/people/karpathy/deepimagesent/coco.zip and extract them in this folder.

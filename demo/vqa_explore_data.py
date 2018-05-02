@@ -14,12 +14,14 @@ def main():
     df = pd.read_pickle(data_path)
     print(df.head())
 
-    from mxnet_vqa.data.coco import get_questions, get_coco_features
+
+
+    from mxnet_vqa.data.coco import get_questions
     questions = get_questions(data_dir_path)
     print('questions: ', len(questions))
 
-    features = get_coco_features(data_dir_path)
-    print('features: ', features.shape)
+    # features = get_coco_features(data_dir_path)
+    # print('features: ', features.shape)
 
 
 
