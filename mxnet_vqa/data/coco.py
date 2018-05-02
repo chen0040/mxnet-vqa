@@ -195,7 +195,14 @@ def word_tokenize(sentence):
     return sentence.split()
 
 
-def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val'):
+def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='concat'):
+    if mode == 'add':
+        return get_questions_matrix_sum(data_dir_path, max_lines_retrieved, split)
+    else:
+        return get_questions_matrix_concat(data_dir_path, max_lines_retrieved, split)
+
+
+def get_questions_matrix_concat(data_dir_path, max_lines_retrieved=-1, split='val'):
     questions = get_questions(data_dir_path, max_lines_retrieved, split)
     glove_word2emb = glove_word2emb_300(data_dir_path)
     logging.debug('glove: %d words loaded', len(glove_word2emb))
@@ -212,6 +219,28 @@ def get_questions_matrix(data_dir_path, max_lines_retrieved=-1, split='val'):
         if (i + 1) % 10000 == 0:
             logging.debug('loaded %d questions', i + 1)
         seq_list.append(seq)
+    question_matrix = pad_sequences(seq_list)
+
+    return question_matrix
+
+
+def get_questions_matrix_sum(data_dir_path, max_lines_retrieved=-1, split='val'):
+    questions = get_questions(data_dir_path, max_lines_retrieved, split)
+    glove_word2emb = glove_word2emb_300(data_dir_path)
+    logging.debug('glove: %d words loaded', len(glove_word2emb))
+    seq_list = []
+
+    for i, question in enumerate(questions):
+        words = word_tokenize(question[0])
+        E = np.zeros(shape=(300, len(words)))
+        for j, word in enumerate(words):
+            if word in glove_word2emb:
+                emb = glove_word2emb[word]
+                E[:, j] = emb
+        E = np.sum(E, axis=1)
+        if (i + 1) % 10000 == 0:
+            logging.debug('loaded %d questions', i + 1)
+        seq_list.append(E)
     question_matrix = pad_sequences(seq_list)
 
     return question_matrix

@@ -50,6 +50,8 @@ class TestCocoValSet(unittest.TestCase):
         glove_dim = 300
         questions = get_questions_matrix(data_dir_path, max_lines_retrieved=max_lines)
         self.assertTupleEqual((max_lines, expected_max_sequence_length, glove_dim), questions.shape)
+        questions = get_questions_matrix(data_dirpath, max_lines_retrieved=max_lines, mode='add')
+        self.assertTupleEqual((max_lines, glove_dim), questions.shape)
 
         nb_classes = 1001
         answers = get_answers_matrix(data_dir_path, max_lines_retrieved=max_lines)
