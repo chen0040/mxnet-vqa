@@ -3,6 +3,7 @@ import sys
 import logging
 import mxnet as mx
 
+
 def patch_path(path):
     return os.path.join(os.path.dirname(__file__), path)
 
