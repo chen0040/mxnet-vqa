@@ -13,7 +13,7 @@ def main():
     model_dir_path = patch_path('models')
 
     answer_mode = 'int'
-    question_mode = 'add'
+    question_mode = 'concat'
     batch_size = 64
     epochs = 100
 
@@ -33,7 +33,7 @@ def main():
     net = VQANet(model_ctx=ctx)
     net.input_mode_question = question_mode
     net.input_mode_answer = answer_mode
-    net.version = '1'
+    net.version = '2'
     net.fit(data_train=train_data, data_eva=test_data, meta=meta_data,
             model_dir_path=model_dir_path, epochs=epochs)
 

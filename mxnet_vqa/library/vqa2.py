@@ -102,6 +102,9 @@ class VQANet(object):
     def checkpoint(self, model_dir_path):
         self.model.save_params(self.get_params_file_path(model_dir_path))
 
+    def save_history(self, history, model_dir_path):
+        return np.save(os.path.join(model_dir_path, VQANet.model_name + '-v' + self.version + '-history.npy'), history)
+
     def fit(self, data_train, data_eva, meta, model_dir_path, epochs=10, batch_size=64, learning_rate=0.01):
 
         self.batch_size = batch_size
@@ -120,6 +123,10 @@ class VQANet(object):
         self.model = Net2(model_ctx=self.model_ctx, out_dim=self.out_dim, batch_size=batch_size, nb_classes=self.nb_classes)
         self.model.collect_params().initialize(init=mx.init.Xavier(), ctx=self.model_ctx)
         trainer = gluon.Trainer(self.model.collect_params(), 'adam', {'learning_rate': learning_rate})
+
+        history = dict()
+        history['train_acc'] = list()
+        history['val_acc'] = list()
 
         moving_loss = 0.
         best_eva = 0
@@ -144,9 +151,13 @@ class VQANet(object):
                     logging.debug("Epoch %s, batch %s. Moving avg of loss: %s", e, i, moving_loss)
             eva_accuracy = self.evaluate_accuracy(data_iterator=data_eva)
             train_accuracy = self.evaluate_accuracy(data_iterator=data_train)
+            history['train_acc'].append(train_accuracy)
+            history['val_acc'].append(eva_accuracy)
             print("Epoch %s. Loss: %s, Train_acc %s, Eval_acc %s" % (e, moving_loss, train_accuracy, eva_accuracy))
             if eva_accuracy > best_eva:
                 best_eva = eva_accuracy
                 logging.info('Best validation acc found. Checkpointing...')
                 self.checkpoint(model_dir_path)
 
+        self.save_history(history, model_dir_path)
+        return history
