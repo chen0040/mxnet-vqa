@@ -26,6 +26,7 @@ def main():
                                                         max_lines_retrieved=100000,
                                                         answer_mode=answer_mode,
                                                         ctx=ctx,
+                                                        max_sequence_length=10,
                                                         question_mode=question_mode,
                                                         batch_size=batch_size)
 
