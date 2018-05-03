@@ -14,6 +14,9 @@ def main():
     data_dir_path = patch_path('data/coco')
     model_dir_path = patch_path('models')
 
+    answer_mode = 'int'
+    question_mode = 'add'
+
     max_lines = 1000
 
     logging.basicConfig(level=logging.DEBUG)
@@ -31,8 +34,10 @@ def main():
     questions = get_questions(data_dir_path, max_lines_retrieved=max_lines)
     answers = get_answers(data_dir_path, max_lines_retrieved=max_lines)
 
-    from mxnet_vqa.library.vqa3 import VQANet
+    from mxnet_vqa.library.vqa1 import VQANet
     net = VQANet(model_ctx=ctx)
+    net.input_mode_question = question_mode
+    net.input_mode_answer = answer_mode
     net.version = '1'
     net.load_glove_300(data_dir_path)
     net.load_model(model_dir_path)
