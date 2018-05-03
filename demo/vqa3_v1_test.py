@@ -56,6 +56,8 @@ def main():
             predicted_answer = answer_labels[ans_class]
         else:
             predicted_answer = 'unknown'
+        print('image: ', image_path)
+        print('question is: ', question)
         print('predicted: ', predicted_answer, 'actual: ', answer)
 
 

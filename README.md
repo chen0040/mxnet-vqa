@@ -39,7 +39,7 @@ In this implementation, VGG16 feature extractor codes are included which convert
 Note that before you can run the codes you need to download val2014 from [COCO](http://cocodataset.org/#download)
 and extract the images in the downloaded compressed file into [demo/data/coco/val2014] folder. 
 
-Also before you run any training codes, it is recommended that you build the pre-computed image features first by running the 
+Also before you run any training or testing codes, it is recommended that you build the pre-computed image features first by running the 
 [build_image_feats.py](demo/build_image_feats.py):
 
 ```bash
@@ -55,12 +55,13 @@ glove embedding encoded matrix. The codes can be found in
 * [mxnet_vqa/data/glove.py](mxnet_vqa/data/glove.py)
 * [mxnet_vqa/utils/glove_loader.py](mxnet_vqa/utils/glove_loader.py)
 
-Before you run any training codes, it is recommended that you download the glove embedding first before by running
+Before you run any training or testing codes, it is recommended that you download the glove embedding first before by running
 the [build_glove_embedding.py](demo/build_glove_embedding.py):
 
 ```bash
 python demo/build_glove_embedding.py
 ``` 
+
 
 
 ### Handle varying-length of the questions
@@ -155,6 +156,37 @@ python demo/vqa3_v1_test.py
 
 
 
+Below shows a sample of the output for running the test:
+
+```text
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000197683.jpg
+question is:  How many people are on the motorcycle?
+predicted:  1 actual:  2
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000460312.jpg
+question is:  What is on the screen?
+predicted:  ski poles actual:  icons
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000245153.jpg
+question is:  What kind of birds are these?
+predicted:  ski poles actual:  puffin
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000099053.jpg
+question is:  What color is the tablecloth?
+predicted:  blue actual:  blue
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000289941.jpg
+question is:  In which hand is the remote?
+predicted:  right actual:  right
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000433984.jpg
+question is:  Are his socks and shoes the same brand?
+predicted:  yes actual:  yes
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000429261.jpg
+question is:  Is this considered fine dining?
+predicted:  no actual:  no
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000397045.jpg
+question is:  Is this photo sideways?
+predicted:  no actual:  yes
+image:  C:/Users/chen0/git/mxnet-vqa/demo\data/coco\val2014\COCO_val2014_000000456239.jpg
+question is:  What is she holding on her hand?
+predicted:  umbrella actual:  umbrella
+```
 
 
 
