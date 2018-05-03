@@ -16,11 +16,14 @@ class Net1(gluon.Block):
             self.dropout = nn.Dropout(.3)
             self.fc1 = nn.Dense(8192, activation='relu')
             self.fc2 = nn.Dense(self.nb_classes)
+            self.lstm = mx.gluon.rnn.LSTM(hidden_size=128, layout='NTC')
 
     def forward(self, x, *args, **kwargs):
         F = nd
+        x2 = x[1]
+        x2 = self.lstm(x2)
         x1 = F.L2Normalization(x[0])
-        x2 = F.L2Normalization(x[1])
+        x2 = F.L2Normalization(x2)
         z = F.concat(x1, x2, dim=1)
         z = self.fc1(z)
         z = self.bn(z)
@@ -30,7 +33,7 @@ class Net1(gluon.Block):
 
 
 class VQANet(object):
-    model_name = 'vqa-net-1'
+    model_name = 'vqa-net-3'
 
     def __init__(self, model_ctx=mx.cpu(), data_ctx=mx.cpu()):
         self.model = None
@@ -105,12 +108,7 @@ class VQANet(object):
                 batch_size = batch.data[0].shape[0]
 
                 data1 = batch.data[0].as_in_context(self.model_ctx)
-                data2 = batch.data[1]
-                if len(data2.shape) == 3:
-                    # collapse the last 2 dimension
-                    # input shape = (2,3,4) => shape = (0,-3) => output shape = (2,12)
-                    data2 = data2.reshape((0, -3))
-                data2 = data2.as_in_context(self.model_ctx)
+                data2 = batch.data[1].as_in_context(self.model_ctx)
                 data = [data1, data2]
                 label = batch.label[0].as_in_context(self.model_ctx)
                 with autograd.record():

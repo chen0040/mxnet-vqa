@@ -16,6 +16,7 @@ def main():
     question_mode = 'concat'
     batch_size = 64
     epochs = 100
+    max_question_seq_length = 15
 
     logging.basicConfig(level=logging.DEBUG)
 
@@ -26,7 +27,7 @@ def main():
                                                         max_lines_retrieved=100000,
                                                         answer_mode=answer_mode,
                                                         ctx=ctx,
-                                                        max_sequence_length=10,
+                                                        max_sequence_length=max_question_seq_length,
                                                         question_mode=question_mode,
                                                         batch_size=batch_size)
 

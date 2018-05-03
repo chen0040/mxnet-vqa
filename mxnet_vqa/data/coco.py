@@ -5,7 +5,7 @@ import os
 import mxnet as mx
 from mxnet import nd
 import numpy as np
-import logging 
+import logging
 
 
 def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
@@ -33,7 +33,7 @@ def train_test_split(data_dir_path, question_mode='add', answer_mode='int',
     meta['answers_matrix_shape'] = answers.shape[1:]
     meta['img_feats_matrix_shape'] = image_feats.shape[1:]
 
-    logging.debug('train test meta: ', meta)
+    logging.debug('train test meta: %s', meta)
 
     return mx.io.NDArrayIter(data=[nd.array(image_feats[train_idx]),
                                    nd.array(questions[train_idx])],
