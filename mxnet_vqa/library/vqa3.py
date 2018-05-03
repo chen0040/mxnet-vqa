@@ -5,6 +5,10 @@ import os
 import numpy as np
 import logging
 
+from mxnet_vqa.utils.glove_loader import GloveModel
+from mxnet_vqa.utils.image_utils import Vgg16FeatureExtractor
+from mxnet_vqa.utils.text_utils import word_tokenize
+
 
 class Net1(gluon.Block):
 
@@ -46,6 +50,8 @@ class VQANet(object):
         self.input_mode_question = 'add'
         self.nb_classes = 1001
         self.meta = None
+        self.glove_model = GloveModel()
+        self.fe = Vgg16FeatureExtractor()
 
     def get_config_file_path(self, model_dir_path):
         return os.path.join(model_dir_path, VQANet.model_name + '-v' + self.version + '-config.npy')
@@ -139,3 +145,18 @@ class VQANet(object):
 
         self.save_history(history, model_dir_path)
         return history
+
+    def predict_answer_class(self, img_path, question):
+        f = self.fe.extract_image_features(img_path)
+        questions_matrix_shape = self.meta['questions_matrix_shape']
+        max_seq_length = questions_matrix_shape[0]
+        question_matrix = np.zeros(shape=(1, max_seq_length, 300))
+        words = word_tokenize(question.lower())
+        for i, word in enumerate(words[0:min(max_seq_length, len(words))]):
+            question_matrix[0, i, :] = self.glove_model.encode_word(word)
+        input_data = [f.as_in_context(self.model_ctx), nd.array(question_matrix, ctx=self.model_ctx)]
+        output = self.model(input_data)
+        return nd.argmax(output, axis=1).astype(np.uint8).asscalar()
+
+    def load_glove_300(self, data_dir_path):
+        self.glove_model.load(data_dir_path, embedding_dim=300)

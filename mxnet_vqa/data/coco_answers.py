@@ -6,7 +6,7 @@ import sys
 import numpy as np
 
 
-def int_to_answers(data_dir_path, split):
+def int_to_answers(data_dir_path, split='val'):
     data_path = os.path.join(data_dir_path, 'data/val_qa')
     if split == 'train':
         data_path = os.path.join(data_dir_path, 'data/train_qa')
@@ -37,7 +37,7 @@ def answers_to_int(data_dir_path, split='val'):
     return dict([(word, i) for i, word in enumerate(top_answers)])
 
 
-def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='one_hot'):
+def get_answers(data_dir_path, max_lines_retrieved=-1, split='val'):
     if split == 'train':
         data_path = os.path.join(data_dir_path, 'data/train_qa')
     elif split == 'val':
@@ -51,6 +51,11 @@ def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode=
 
     if max_lines_retrieved != -1:
         answers = answers[:min(max_lines_retrieved, len(answers))]
+    return answers
+
+
+def get_answers_matrix(data_dir_path, max_lines_retrieved=-1, split='val', mode='one_hot'):
+    answers = get_answers(data_dir_path, max_lines_retrieved, split)
 
     if mode == 'one_hot':
         answer_matrix = np.zeros((len(answers), 1001))
