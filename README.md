@@ -96,6 +96,13 @@ python demo/vqa1_v1_train.py
 
 After training, the trained models will be saved into the [demo/models](demo/models) folder.
 
+To test the trained mode, one can run the script [vqal1_v1_test.py](demo/vqa3_v1_test.py):
+
+```bash
+python demo/vqa1_v1_test.py
+```
+
+
 ### VQA2: MCB in VQA Network
 
 The second VQA net implementation corresponds to the Net2 outlined in [VQA Chapter](http://gluon.mxnet.io/chapter08_computer-vision/visual-question-answer.html).
@@ -115,6 +122,13 @@ python demo/vqa2_v1_train.py
 
 After training, the trained models will be saved into the [demo/models](demo/models) folder.
 
+To test the trained mode, one can run the script [vqal2_v1_test.py](demo/vqa3_v1_test.py):
+
+```bash
+python demo/vqa2_v1_test.py
+```
+
+
 ### VQA3: Incorporate Recurrent Network into the VQA Network
 
 The question structure is a sequence of characters in nature. Therefore, one idea that I try is to feed the
@@ -132,6 +146,12 @@ python demo/vqa3_v1_train.py
 ```
 
 After training, the trained models will be saved into the [demo/models](demo/models) folder.
+
+To test the trained mode, one can run the script [vqal3_v1_test.py](demo/vqa3_v1_test.py):
+
+```bash
+python demo/vqa3_v1_test.py
+```
 
 
 
