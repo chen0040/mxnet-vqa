@@ -14,6 +14,7 @@ class Net1(gluon.Block):
         with self.name_scope():
             self.bn = nn.BatchNorm()
             self.dropout = nn.Dropout(.3)
+            self.fc0 = nn.Dense(512, activation='relu')
             self.fc1 = nn.Dense(8192, activation='relu')
             self.fc2 = nn.Dense(self.nb_classes)
             self.lstm = mx.gluon.rnn.LSTM(hidden_size=128, layout='NTC')
@@ -22,6 +23,7 @@ class Net1(gluon.Block):
         F = nd
         x2 = x[1]
         x2 = self.lstm(x2)
+        x2 = self.fc0(x2)
         x1 = F.L2Normalization(x[0])
         x2 = F.L2Normalization(x2)
         z = F.concat(x1, x2, dim=1)
