@@ -6,13 +6,13 @@ Yet another visual question answering in MXNet
 
 For those of you who studied the [http://gluon.mxnet.io](http://gluon.mxnet.io). You might think that the
 author of [http://gluon.mxnet.io](http://gluon.mxnet.io) already has a 
-[chapter](http://gluon.mxnet.io/chapter08_computer-vision/visual-question-answer.html) on how to implement
-a visual question answering (VQA) in MXNet, why bother create another version?  
+[VQA Chapter](http://gluon.mxnet.io/chapter08_computer-vision/visual-question-answer.html) on how to implement
+a visual question answering (VQA) in MXNet, why bother create another project on this?  
 However, for someone who tries to recreate a working code from
 the [VQA Chapter](http://gluon.mxnet.io/chapter08_computer-vision/visual-question-answer.html) of the ebook,
-one might find that the sample codes illustrated in the ebook contains several issues that need to be fixed (
+one might find that the sample codes illustrated in the ebook contains some issues that need to be addressed (
 for example, F was used for a gluon.nn.Block forward() method and was not declared in the import either, 
-the MCB implementation also has some problem in terms of the S and H second dimension, there is no proper
+the MCB implementation also has some problem in terms of the S and H second dimension, there is no detail
 handling on that as well). Furthermore, the question matrix, feature matrix was pre-computed using pre-trained
 model and directly downloaded from mxnet.io in the codes without showing how they can be implemented.
 
@@ -36,6 +36,16 @@ In this implementation, VGG16 feature extractor codes are included which convert
 * [mxnet_vqa/data/coco_images.py](mxnet_vqa/data/coco_images.py)
 * [mxnet_vqa/utils/image_utils.py](mxnet_vqa/utils/image_utils.py)
 
+Note that before you can run the codes you need to download val2014 from [COCO](http://cocodataset.org/#download)
+and extract the images in the downloaded compressed file into [demo/data/coco/val2014] folder. 
+
+Also before you run any training codes, it is recommended that you build the pre-computed image features first by running the 
+[build_image_feats.py](demo/build_image_feats.py):
+
+```bash
+python demo/build_image_feats.py
+```  
+
 ### Generate question matrix
 
 In ths implementation, the glove downloader and loader codes are included which converts the questions into
@@ -44,6 +54,13 @@ glove embedding encoded matrix. The codes can be found in
 * [mxnet_vqa/data/coco_questions.py](mxnet_vqa/data/coco_questions.py)
 * [mxnet_vqa/data/glove.py](mxnet_vqa/data/glove.py)
 * [mxnet_vqa/utils/glove_loader.py](mxnet_vqa/utils/glove_loader.py)
+
+Before you run any training codes, it is recommended that you download the glove embedding first before by running
+the [build_glove_embedding.py](demo/build_glove_embedding.py):
+
+```bash
+python demo/build_glove_embedding.py
+``` 
 
 
 ### Handle varying-length of the questions
@@ -101,8 +118,8 @@ After training, the trained models will be saved into the [demo/models](demo/mod
 ### VQA3: Incorporate Recurrent Network into the VQA Network
 
 The question structure is a sequence of characters in nature. Therefore, one idea that I try is to feed the
- question batch into a LSTM layer before concatenating with the image features. The implementation of this can be
- found in 
+ question batch into a LSTM layer followed by a dense layer before concatenating with the image features. 
+ The implementation of this can be found in 
  
 * [mxnet_vqa/library/vqa3.py](mxnet_vqa/library/vqa3.py)
 
