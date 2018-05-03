@@ -108,8 +108,7 @@ class VQANet(object):
                 data2 = batch.data[1]
                 if len(data2.shape) == 3:
                     # collapse the last 2 dimension
-                    # input shape = (2,3,4) => shape = (0,-3) => output shape = (2,12)
-                    data2 = data2.reshape((0, -3))
+                    data2 = data2.reshape((batch_size, data2.shape[1] * data2.shape[2]))
                 data2 = data2.as_in_context(self.model_ctx)
                 data = [data1, data2]
                 label = batch.label[0].as_in_context(self.model_ctx)
