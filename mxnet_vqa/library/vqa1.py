@@ -59,7 +59,11 @@ class VQANet(object):
         data_iterator.reset()
         for i, batch in enumerate(data_iterator):
             data1 = batch.data[0].as_in_context(self.model_ctx)
-            data2 = batch.data[1].as_in_context(self.model_ctx)
+            data2 = batch.data[1]
+            if len(data2.shape) == 3:
+                # collapse the last 2 dimension
+                data2 = data2.reshape((data2.shape[0], data2.shape[1] * data2.shape[2]))
+            data2 = data2.as_in_context(self.model_ctx)
             data = [data1, data2]
             label = batch.label[0].as_in_context(self.model_ctx)
             output = self.model(data)
