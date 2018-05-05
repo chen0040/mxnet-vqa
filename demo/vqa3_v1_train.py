@@ -20,7 +20,7 @@ def main():
     # set it to -1 if u want to use the longest question sequence length, but my
     # graphics card is not good enough for large max_question_seq_length so i used
     # 10 instead
-    max_question_seq_length = 10
+    max_question_seq_length = 12
 
     logging.basicConfig(level=logging.DEBUG)
 
