@@ -112,6 +112,8 @@ The implemented version has some difference from Net2 implementation outlined:
 * The number of 1s added to S and H for the sketch count is fixed and concatenated with the image-feats and question matrix
 * The dimension of S and H are different for x1 and x2 (The Net2 uses the same dimension of 3072, which I don't
 seem to see the reason why it is needed for the sketch count to work)
+* The x2 (text features, mode='concat') is first passed through a LSTM followed by a dense layer before going into
+the MCB with x1 (image features)
 
 The training code is within [vqal2_v1_train.py](demo/vqa2_v1_train.py)
 
@@ -132,7 +134,7 @@ python demo/vqa2_v1_test.py
 
 ### VQA3: Incorporate Recurrent Network into the VQA Network
 
-The question structure is a sequence of characters in nature. Therefore, one idea that I try is to feed the
+The question structure is a sequence of words in nature. Therefore, one idea that I try is to feed the
  question batch into a LSTM layer followed by a dense layer before concatenating with the image features. 
  The implementation of this can be found in 
  
@@ -152,6 +154,32 @@ To test the trained mode, one can run the script [vqal3_v1_test.py](demo/vqa3_v1
 
 ```bash
 python demo/vqa3_v1_test.py
+```
+
+
+### VQA4: VQA Network with LSTM and element_wise_multiply
+
+In this implementation, I try is to feed the
+ question batch into a LSTM layer followed by a dense layer before concatenating with the image features. And instead
+ of concatenating two feature matrix in the axis 1, i use element_wise_multiply
+ The implementation of this can be found in 
+ 
+* [mxnet_vqa/library/vqa4.py](mxnet_vqa/library/vqa4.py)
+
+The training code is within [vqal4_v1_train.py](demo/vqa4_v1_train.py)
+
+To run the training code, for example, one can run the following command:
+
+```bash
+python demo/vqa4_v1_train.py
+```
+
+After training, the trained models will be saved into the [demo/models](demo/models) folder.
+
+To test the trained mode, one can run the script [vqal4_v1_test.py](demo/vqa3_v1_test.py):
+
+```bash
+python demo/vqa4_v1_test.py
 ```
 
 

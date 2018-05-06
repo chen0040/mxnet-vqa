@@ -17,6 +17,11 @@ def main():
     batch_size = 64
     epochs = 100
 
+    # set it to -1 if u want to use the longest question sequence length, but my
+    # graphics card is not good enough for large max_question_seq_length so i used
+    # 10 instead
+    max_question_seq_length = 12
+
     logging.basicConfig(level=logging.DEBUG)
 
     ctx = mx.gpu(0)
@@ -26,17 +31,16 @@ def main():
                                                         max_lines_retrieved=100000,
                                                         answer_mode=answer_mode,
                                                         ctx=ctx,
+                                                        max_sequence_length=max_question_seq_length,
                                                         question_mode=question_mode,
                                                         batch_size=batch_size)
 
-    from mxnet_vqa.library.vqa2 import VQANet
+    from mxnet_vqa.library.vqa4 import VQANet
     net = VQANet(model_ctx=ctx)
     net.input_mode_question = question_mode
     net.input_mode_answer = answer_mode
     net.version = '1'
-    net.out_dim = 1000  # default is 10000, which is too high for my graphics card
     net.fit(data_train=train_data, data_eva=test_data, meta=meta_data,
-            batch_size=batch_size,
             model_dir_path=model_dir_path, epochs=epochs)
 
 
